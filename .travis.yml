@@ -1,0 +1,23 @@
+sudo: required
+services:
+    -docker
+
+before_install:
+    docker build -t yodevops/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+    - docker run yodevops/react-test npm test -- --coverage
+
+after_success:
+    - docker build -t yodevops/multi-client ./client
+    - docker build -t yodevops/multi-nginx ./nginx
+    - docker build -t yodevops/multi-server ./server
+    - docker build -t yodevops/multi-worker ./worker
+# Log in to docker cli
+    - echo "DOCKER_PASS" | docker login -u "DOCKER_ID" --password-stdin
+#
+#take those images and push to docker hub
+    - docker push yodevops/multi-client
+    - docker push yodevops/multi-nginx
+    - docker push yodevops/multi-server
+    - docker push yodevops/multi-worker
